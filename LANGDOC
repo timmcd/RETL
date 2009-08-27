@@ -1,0 +1,83 @@
+English Test Language Doc
+    Timothy McDowell, Devyn Cairns [other contributors here]
+    
+    I would like all people who drop by here to insert there own ideas and improvements. Just save a revision before you start editing.
+
+Important features:
+    Sentences
+    Nouns
+    And
+    Pronouns
+    Verbs
+    Structs
+    
+        Sentences
+
+ETL statements are organized into 'sentences'. Instead of a semicolon on the end of a statement, there is a period.
+    display the string "Hello, World!".
+    
+        NOUNS
+        
+A noun in ETL is just another name for a variable. However, like a noun in english, it can be refered to with a pronoun.
+    create number x.
+Nouns can be set to different values within their type.
+    set x to 5.
+        x = 5
+    set x to x - 1.
+        x = 4
+Temporary nouns can also be created using the keyword 'the'.
+    if x == the number 7 then
+        display "Chocolate!".
+        [Devyn Cairns] Maybe try to experiment with things like "if x is equal to the number 7 then" or "if x is the number 7 then", more English-like that way and not that much harder :)
+
+However, the 'the' keyword doesn't need to be used. Use whichever looks and feels nicer to you!
+    if x == 7 then ... .
+
+        AND
+
+The keyword 'and' is used to create groups. It's hard to explain, so some examples...
+    create number x and number y.
+    [Devyn Cairns] How about "create numbers x and y"
+This creates two variables, like 'x,y = 0' in Ruby.
+    create number x and set it to 5.
+This links together two sentences, like in english. It runs both statements. It is the same as: create number x. set it to 5.
+    create number x and number y and set them to 4 and 5.
+The pronoun group (more on this later) 'them' is created, and 'set' is called on each item, assigning each value respectively. Same as:
+    create number x. create number y. set x to 4. set y to 5.
+
+
+        PRONOUNS
+        
+Pronouns are just like in the english language, kinda...
+    create number x and set it to 3.
+It is always an usable pronoun refering to the last referenced noun. However, if you have:
+    create number x and number y.
+It still refers to the last referenced noun, that is, y. However, in this situation, the pronoun group 'them' is called.
+    create number x and number y and set them to 5 and 6.
+What if you had a custom struct type and wanted to set a variable in the struct?
+    create player x and set its position to [5, 5].
+    create player x and player y and se their position to [5, 5] and [7, 5].
+What if x and y were different structs?
+    create player x and vector y. set x's position to [5, 5] and set y's xcoordinate to [7, 5].
+    LIST OF PRONOUNS
+        it    its
+        them    their
+
+
+        VERBS
+
+Verbs are like functions/methods in other programming languages. They can be used on a group, or on single arguments. Create is an example of a verb.
+    create verb 'addtwo to [number x]' and set it to
+        return x +2
+    create number anum and set it to 3.
+    set anum to the result of [addtwo to anum]. # <--- NEED HELP WITH THIS SYNTAX!
+        [Devyn Cairns] How's that? And I suppose you could make "the result of" optional.
+
+        STRUCTS
+        
+Structs are a collection of verbs and nouns.
+    create struct player that contains
+        the number position which is set by default to [0,0],
+        the string name.
+    create player x and set its position to [5, 4]. set its name to "Bob".
+        [Devyn Cairns] That looks much cleaner.
