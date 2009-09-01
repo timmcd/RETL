@@ -1,0 +1,50 @@
+grammar ETLGrammar
+    rule script
+        sentence+
+    end
+    rule sentence
+        statement (space 'and' space statement)* '.'
+    end
+    rule statement
+        space? (verb/verbcalled) ( space argument ','? )*
+    end
+    rule space
+        [\s]+
+    end
+    rule verbcalled
+        '[' verb (space argument ','? )* ']'
+    end
+    rule verb
+        [A-Za-z-]+
+    end
+    rule verbdefinition
+        # Syntax?
+    end
+    rule argument
+        verb / verbcalled / noun / pronoun / math / type / number / text
+    end
+    rule noun
+        (('the' noun 'of' space) / ('the' (space type))? [A-Za-z-]+
+    end
+    rule pronoun
+    end
+    rule math
+        '(' (number space mathoperator space number) (space mathoperator space number)* ')'
+    end
+    rule mathoperator
+        '+' / '-' / '/' / '^' / '*'
+    end
+    ## (5 - 2 + 3) == 6
+    rule struct
+        [A-Za-z-]+
+    end
+    rule type
+        'number' / 'text' / 'struct' / 'verb'
+    end
+    rule number
+        [0-9]+ ('.' [0-9]+)?
+    end
+    rule text
+        '"' [^"] '"'
+    end
+end
