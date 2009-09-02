@@ -17,16 +17,11 @@ grammar ETLGrammar
     rule verb
         [A-Za-z-]+
     end
-    rule verbdefinition
-        # Syntax?
-    end
     rule argument
-        verb / verbcalled / noun / pronoun / math / type / number / text
+        verbcalled / noun / math / type / number / text
     end
     rule noun
-        (('the' noun 'of' space) / ('the' (space type))? [A-Za-z-]+
-    end
-    rule pronoun
+        ('the' space)? (type space ('of' space)?)? [A-Za-z-]+ ("'" ("s")? space noun) 
     end
     rule math
         '(' (number space mathoperator space number) (space mathoperator space number)* ')'
@@ -34,7 +29,6 @@ grammar ETLGrammar
     rule mathoperator
         '+' / '-' / '/' / '^' / '*'
     end
-    ## (5 - 2 + 3) == 6
     rule struct
         [A-Za-z-]+
     end
