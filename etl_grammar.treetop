@@ -21,7 +21,10 @@ grammar ETLGrammar
         verbcalled / noun / math / type / number / text
     end
     rule noun
-        ('the' space)? (type space ('of' space)?)? [A-Za-z-]+ ("'" ("s")? space noun) 
+        ('the' space)? (type space ('of' space)?)? (it/[A-Za-z-])+ ("'" ("s")? space noun)
+    end
+    rule it
+        'it'
     end
     rule math
         '(' (number space mathoperator space number) (space mathoperator space number)* ')'
