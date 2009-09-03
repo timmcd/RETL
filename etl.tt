@@ -1,0 +1,113 @@
+grammar ETL
+    rule script
+        sentences:sentence+ {
+          def eval(scope=nil)
+            scope ||= ETL::Scope.new
+            sentences.map do |s|
+              s.eval(scope)
+            end.last
+          end
+        }
+    end
+    rule sentence
+        i_statement optional_statements:(space 'and' space statement)* '.' {
+          def eval(scope)
+            i_statement.eval(scope)
+            optional_statements.map{|st|st.eval(scope)}.last
+          end
+        }
+    end
+    rule statement
+        space? verb:(verb/verbcalled) arguments:( space a:argument ','&(space argument) )* {
+          def eval(scope)
+            verb.eval(scope).call(*arguments.map{|a|a.a.eval(scope)})
+          end
+        }
+    end
+    rule space
+        [\s]+ {
+          def eval(scope)
+            # do nothing
+          end
+        }
+    end
+    rule verbcalled
+        '[' s:statement ']' {
+          def eval(scope)
+            s.eval(scope)
+          end
+        }
+    end
+    rule verb
+        name:[A-Za-z-]+ {
+          def eval(scope)
+            scope.verbs[name.text_value]
+          end
+        }
+    end
+    rule argument
+        object:(verbcalled / noun / math / type / number / text) {
+          def eval(scope)
+            object.eval(scope)
+          end
+        }
+    end
+    rule noun
+        ('the' space)? (type:type space ('of' space)?)? name:(it/[A-Za-z-])+ ("'" ("s")? space property:noun) {
+          def eval(scope)
+            n = scope.nouns[name.text_value,type.eval(scope)]
+            property ? property.eval(n.scope) : n
+          end
+        }
+    end
+    rule it
+        'it' {
+          def eval(scope)
+            scope.it
+          end
+        }
+    end
+    rule math
+        '(' base:number operations:(space op:mathoperator space n:number)+ ')' {
+          def eval(scope)
+            ETL::Number.new(Kernel.eval("#{base.eval(scope)} #{operations.map{|o|"#{o.op.eval(scope)} #{o.n.eval(scope)}"}.join(' ')}"))
+          end
+        }
+    end
+    rule mathoperator
+        o:('+' / '-' / '/' / '^' / '*') {
+          def eval(scope)
+            case o.text_value
+            when '^'
+              return "**"
+            else
+              return o.text_value
+            end
+          end
+        }
+    end
+    rule struct
+        name:[A-Za-z-]+ {
+          def eval(scope)
+            scope.structs[name.text_value]
+          end
+        }
+    end
+    rule type
+        t:('number' / 'text' / 'struct' / 'verb') {
+          def eval(scope)
+            return t.text_value
+          end
+        }
+    end
+    rule number
+        base:[0-9]+ point:('.' n:[0-9]+)? {
+          def eval(scope)
+            return ETL::Number.new(base.text_value.to_i, point.n.text_value.to_i)
+          end
+        }
+    end
+    rule text
+        '"' [^"] '"'
+    end
+end
