@@ -1,4 +1,4 @@
-grammar ETL
+grammar ETLGrammar
     rule script
         sentences:sentence+ {
           def eval(scope=nil)
@@ -70,7 +70,7 @@ grammar ETL
     rule math
         '(' base:number operations:(space op:mathoperator space n:number)+ ')' {
           def eval(scope)
-            ETL::Number.new(Kernel.eval("#{base.eval(scope)} #{operations.map{|o|"#{o.op.eval(scope)} #{o.n.eval(scope)}"}.join(' ')}"))
+            ETL.number(Kernel.eval("#{base.eval(scope)} #{operations.map{|o|"#{o.op.eval(scope)} #{o.n.eval(scope)}"}.join(' ')}"))
           end
         }
     end
@@ -103,11 +103,15 @@ grammar ETL
     rule number
         base:[0-9]+ point:('.' n:[0-9]+)? {
           def eval(scope)
-            return ETL::Number.new(base.text_value.to_i, point.n.text_value.to_i)
+            return ETL.number(base.text_value.to_i, point.n.text_value.to_i)
           end
         }
     end
     rule text
-        '"' [^"] '"'
+        '"' str:[^"] '"' {
+          def eval(scope)
+            return ETL.text(str.text_value)
+          end
+        }
     end
 end
