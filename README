@@ -16,6 +16,6 @@ The interpreter is still being worked on, but you can try out the parser:
     require 'treetop'
     require 'etl/grammar'
     
-    puts ETL::GrammarParser.new.parse($stdin.gets.chomp).inspect
+    puts ETLGrammarParser.new.parse($stdin.gets.chomp).inspect
 
 Run the Ruby script, type a line of code and press ENTER. You will get a pretty long syntax tree. If it didn't parse, it will just print "nil".
