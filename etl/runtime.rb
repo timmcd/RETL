@@ -27,4 +27,9 @@ end
 
 class ETL::Scope
   # unfinished
+  def initialize(parent=nil)
+    @parent = parent
+    @verbs = VerbTable.new
+    @nouns = NounTable.new
+  end
 end
