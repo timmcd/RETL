@@ -1,9 +1,9 @@
 grammar ETLGrammar
     rule script
-        sentences:sentence+ {
+        sentence+ {
           def eval(scope=nil)
             scope ||= ETL::Scope.new
-            sentences.map do |s|
+            elements.map do |s|
               s.eval(scope)
             end.last
           end
@@ -13,14 +13,14 @@ grammar ETLGrammar
         i_statement optional_statements:(space 'and' space statement)* '.' {
           def eval(scope)
             i_statement.eval(scope)
-            optional_statements.map{|st|st.eval(scope)}.last
+            optional_statements.elements.map{|st|st.eval(scope)}.last
           end
         }
     end
     rule statement
-        space? verb:(verb/verbcalled) arguments:( space a:argument ','&(space argument) )* {
+        space? verb:( verb/verbcalled ) arguments:( space a:argument ( ',' &( space argument ) ) )* {
           def eval(scope)
-            verb.eval(scope).call(*arguments.map{|a|a.a.eval(scope)})
+            verb.eval(scope).call(*arguments.elements.map{|a|a.a.eval(scope)})
           end
         }
     end
@@ -39,16 +39,16 @@ grammar ETLGrammar
         }
     end
     rule verb
-        name:[A-Za-z-]+ {
+        [A-Za-z-]+ {
           def eval(scope)
-            scope.verbs[name.text_value]
+            scope.verbs[text_value]
           end
         }
     end
     rule argument
-        object:(verbcalled / noun / math / type / number / text) {
+        (verbcalled / noun / math / type / number / text) {
           def eval(scope)
-            object.eval(scope)
+            elements[0].elements[0].eval(scope)
           end
         }
     end
@@ -70,33 +70,33 @@ grammar ETLGrammar
     rule math
         '(' base:number operations:(space op:mathoperator space n:number)+ ')' {
           def eval(scope)
-            ETL.number(Kernel.eval("#{base.eval(scope)} #{operations.map{|o|"#{o.op.eval(scope)} #{o.n.eval(scope)}"}.join(' ')}"))
+            ETL.number(Kernel.eval("#{base.eval(scope)} #{operations.elements.map{|o|"#{o.op.eval(scope)} #{o.n.eval(scope)}"}.join(' ')}"))
           end
         }
     end
     rule mathoperator
-        o:('+' / '-' / '/' / '^' / '*') {
+        ('+' / '-' / '/' / '^' / '*') {
           def eval(scope)
-            case o.text_value
+            case text_value
             when '^'
               return "**"
             else
-              return o.text_value
+              return text_value
             end
           end
         }
     end
     rule struct
-        name:[A-Za-z-]+ {
+        [A-Za-z-]+ {
           def eval(scope)
-            scope.structs[name.text_value]
+            scope.structs[text_value]
           end
         }
     end
     rule type
-        t:('number' / 'text' / 'struct' / 'verb') {
+        ('number' / 'text' / 'struct' / 'verb') {
           def eval(scope)
-            return t.text_value
+            return text_value
           end
         }
     end
