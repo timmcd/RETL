@@ -167,11 +167,20 @@ module ETL
 
   # rule text
   #   any string of text
-  #     not containing a double quotation mark [fixme]
+  #     not containing a double quotation mark [unless escaped with a backslash],
+  #     including escape characters \" ["], \n [LF], \e [escape], \r [CR],
+  #     or hex/octal escape characters \274, \xBC
   #     surrounded by double quotation marks ["].
   module TextNode 
     def eval(scope)
-      return ETL.text(str.text_value)
+      return ETL.text(str.text_value.
+                      gsub('\"', '"').
+                      gsub('\n', "\n").
+                      gsub('\e', "\e").
+                      gsub('\r', "\r").
+                      gsub(/\\0([0-7]+)/){ $1.to_i(8).chr }.
+                      gsub(/\\x([0-9a-fA-F]+)/) { $1.to_i(16).chr }
+                     )
     end
   end
 end

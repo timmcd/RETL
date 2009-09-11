@@ -76,7 +76,7 @@ module ETL
     end
 
     rule text
-      '"' str:[^"]* '"'
+      '"' str:('\' ["n] / '\' [0-7]+ / '\x' [0-9a-fA-F] / !'"' .)*
         <TextNode>
     end
   end
