@@ -21,7 +21,7 @@ class ETL::Runtime
     end
   end
   def run string
-    ETLGrammarParser.new.parse(string).eval(@global_scope)
+    ETL::GrammarParser.new.parse(string).eval(@global_scope)
   end
 end
 
@@ -29,7 +29,7 @@ class ETL::Scope
   # unfinished
   def initialize(parent=nil)
     @parent = parent
-    @verbs = VerbTable.new
-    @nouns = NounTable.new
+    @verbs = ETL::Table::Verb.new
+    @nouns = ETL::Table::Verb.new
   end
 end
