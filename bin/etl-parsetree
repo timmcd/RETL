@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+$:.unshift(File.dirname(__FILE__) + '/../lib')
+
+require 'rubygems' rescue nil
+require 'etl/grammar'
+
+loop do
+  print "\e[1metl>\e[0m "
+  break unless i = $stdin.gets
+  if x = ETL::GrammarParser.new.parse(i.chomp)
+    print "\e[33m"
+    puts x.inspect
+    print "\e[0m"
+  else
+    puts "\e[31mSyntax Error\e[0m"
+  end
+end

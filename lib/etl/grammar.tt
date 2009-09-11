@@ -76,7 +76,7 @@ module ETL
     end
 
     rule text
-      '"' str:[^"] '"'
+      '"' str:[^"]* '"'
         <TextNode>
     end
   end
