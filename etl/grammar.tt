@@ -1,121 +1,83 @@
 require 'treetop'
+require 'etl/pdef'
 
 module ETL
   grammar Grammar
-      rule script
-          sentence+ {
-            def eval(scope=nil)
-              scope ||= ETL::Scope.new
-              elements.map do |s|
-                s.eval(scope)
-              end.last
-            end
-          }
-      end
-      rule sentence
-          space? statement opt:(space 'and' space statement)* '.' {
-            def eval(scope)
-              statement.eval(scope)
-              opt.elements.map{|st|st.eval(scope)}.last
-            end
-          }
-      end
-      rule statement
-          verb:( verb/verbcalled ) arguments:( space a:argument (',' &(space? argument) / '') )* {
-            def eval(scope)
-              verb.eval(scope).call(*arguments.elements.map{|a|a.a.eval(scope)})
-            end
-          }
-      end
-      rule space
-          [\s]+ {
-            def eval(scope)
-              # do nothing
-            end
-          }
-      end
-      rule verbcalled
-          '[' s:statement ']' {
-            def eval(scope)
-              s.eval(scope)
-            end
-          }
-      end
-      rule verb
-          [A-Za-z-]+ {
-            def eval(scope)
-              scope.verbs[text_value]
-            end
-          }
-      end
-      rule argument
-          (verbcalled / noun / math / type / number / text) {
-            def eval(scope)
-              elements[0].elements[0].eval(scope)
-            end
-          }
-      end
-      rule noun
-          ('the' space)? (type space ('of' space)?)? name:(it/[A-Za-z-])+ ("'" "s"? space property:noun)? {
-            def eval(scope)
-              n = scope.nouns[name.text_value,type.eval(scope)]
-              property ? property.eval(n.scope) : n
-            end
-          }
-      end
-      rule it
-          'it' {
-            def eval(scope)
-              scope.it
-            end
-          }
-      end
-      rule math
-          '(' base:number operations:(space op:mathoperator space n:number)+ ')' {
-            def eval(scope)
-              ETL.number(Kernel.eval("#{base.eval(scope)} #{operations.elements.map{|o|"#{o.op.eval(scope)} #{o.n.eval(scope)}"}.join(' ')}"))
-            end
-          }
-      end
-      rule mathoperator
-          ('+' / '-' / '/' / '^' / '*') {
-            def eval(scope)
-              case text_value
-              when '^'
-                return "**"
-              else
-                return text_value
-              end
-            end
-          }
-      end
-      rule struct
-          [A-Za-z-]+ {
-            def eval(scope)
-              scope.structs[text_value]
-            end
-          }
-      end
-      rule type
-          ('number' / 'text' / 'struct' / 'verb') {
-            def eval(scope)
-              return text_value
-            end
-          }
-      end
-      rule number
-          base:[0-9]+ point:('.' n:[0-9]+)? {
-            def eval(scope)
-              return ETL.number(base.text_value.to_i, point.n.text_value.to_i)
-            end
-          }
-      end
-      rule text
-          '"' str:[^"] '"' {
-            def eval(scope)
-              return ETL.text(str.text_value)
-            end
-          }
-      end
+    rule script
+      sentence+
+        <ScriptNode>
+    end
+
+    rule sentence
+      space? statement opt:(space 'and' space statement)* '.'
+        <SentenceNode>
+    end
+
+    rule statement
+      verb:( verb/verbcalled ) arguments:( space a:argument (',' &(space? argument) / '') )*
+        <StatementNode>
+    end
+
+    rule space
+      [\s]+
+        <SpaceNode>
+    end
+
+    rule verbcalled
+      '[' s:statement ']'
+        <VerbCalledNode>
+    end
+
+    rule verb
+      [A-Za-z-]+
+        <VerbNode>
+    end
+
+    rule argument
+      (verbcalled / noun / math / type / number / text)
+        <ArgumentNode>
+    end
+
+    rule noun
+      ('the' space)? (type space ('of' space)?)? name:(it/[A-Za-z-])+ ("'" "s"? space property:noun)?
+        <NounNode>
+    end
+
+    rule it
+      'it'
+        <ItNode>
+    end
+
+    rule math
+      '(' base:number operations:(space op:mathoperator space n:number)+ ')'
+        <MathNode>
+    end
+
+    rule mathoperator
+      ('+' / '-' / '/' / '^' / '*')
+        <MathOperatorNode>
+    end
+
+    rule struct
+      [A-Za-z-]+
+        <StructNode>
+    end
+
+    rule type
+      ('number' / 'text' / 'struct' / 'verb')
+        <BuiltinTypeNode> /
+      struct
+        <StructTypeNode>
+    end
+
+    rule number
+      base:[0-9]+ point:('.' n:[0-9]+)?
+        <NumberNode>
+    end
+
+    rule text
+      '"' str:[^"] '"'
+        <TextNode>
+    end
   end
 end
