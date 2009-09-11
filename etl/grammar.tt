@@ -56,7 +56,7 @@ module ETL
           }
       end
       rule noun
-          ('the' space)? (type:type space ('of' space)?)? name:(it/[A-Za-z-])+ ("'" ("s")? space property:noun) {
+          ('the' space)? (type space ('of' space)?)? name:(it/[A-Za-z-])+ ("'" "s"? space property:noun)? {
             def eval(scope)
               n = scope.nouns[name.text_value,type.eval(scope)]
               property ? property.eval(n.scope) : n
