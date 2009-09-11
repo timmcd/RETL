@@ -3,7 +3,7 @@ require 'treetop'
 module ETL
   # rule script
   #   one or more sentences.
-  class ScriptNode < Treetop::Runtime::SyntaxNode
+  module ScriptNode 
     def eval(scope=nil)
       scope ||= ETL::Scope.new
       elements.map do |s|
@@ -16,7 +16,7 @@ module ETL
   #   one or more statements,
   #   delimited by "and",
   #   ended with a period.
-  class SentenceNode < Treetop::Runtime::SyntaxNode
+  module SentenceNode 
     def eval(scope)
       statement.eval(scope)
       opt.elements.map{|st|st.eval(scope)}.last
@@ -26,7 +26,7 @@ module ETL
   # rule statement
   #   a verb followed by any number of arguments,
   #   delimited by a comma.
-  class StatementNode < Treetop::Runtime::SyntaxNode
+  module StatementNode 
     def eval(scope)
       verb.eval(scope).call(*arguments.elements.map{|a|a.a.eval(scope)})
     end
@@ -34,7 +34,7 @@ module ETL
 
   # rule space
   #   any whitespace.
-  class SpaceNode < Treetop::Runtime::SyntaxNode
+  module SpaceNode 
     def eval(scope)
       # do nothing
     end
@@ -43,7 +43,7 @@ module ETL
   # rule verbcalled
   #   a statement surrounded by
   #   square brackets.
-  class VerbCalledNode < Treetop::Runtime::SyntaxNode
+  module VerbCalledNode 
     def eval(scope)
       s.eval(scope)
     end
@@ -53,7 +53,7 @@ module ETL
   #   a word made of:
   #   - any letter [A-Za-z]
   #   - a hyphen [-]
-  class VerbNode < Treetop::Runtime::SyntaxNode
+  module VerbNode 
     def eval(scope)
       scope.verbs[text_value]
     end
@@ -67,7 +67,7 @@ module ETL
   #   - type
   #   - number
   #   - text
-  class ArgumentNode < Treetop::Runtime::SyntaxNode
+  module ArgumentNode 
     def eval(scope)
       elements[0].elements[0].eval(scope)
     end
@@ -80,7 +80,7 @@ module ETL
   #   followed by s or 's optionally
   #     and another noun, to designate
   #     a property.
-  class NounNode < Treetop::Runtime::SyntaxNode
+  module NounNode 
     def eval(scope)
       n = scope.nouns[name.text_value,type.eval(scope)]
       property ? property.eval(n.scope) : n
@@ -89,7 +89,7 @@ module ETL
 
   # rule it
   #   "it" - the last object used.
-  class ItNode < Treetop::Runtime::SyntaxNode
+  module ItNode 
     def eval(scope)
       scope.it
     end
@@ -98,7 +98,7 @@ module ETL
   # rule math
   #   any sequence of number & mathoperator,
   #   surrounded by parentheses.
-  class MathNode < Treetop::Runtime::SyntaxNode
+  module MathNode 
     def eval(scope)
       ETL.number(Kernel.eval("#{base.eval(scope)} #{operations.elements.map{|o|"#{o.op.eval(scope)} #{o.n.eval(scope)}"}.join(' ')}"))
     end
@@ -107,7 +107,7 @@ module ETL
   # rule mathoperator
   #   plus, minus, divide, exponent, multiply
   #      +,     -,      /,        ^,        *
-  class MathOperatorNode < Treetop::Runtime::SyntaxNode
+  module MathOperatorNode 
     def eval(scope)
       case text_value
       when '^'
@@ -121,7 +121,7 @@ module ETL
   # rule struct
   #   any of [A-Za-z-],
   #   the name of a struct
-  class StructNode < Treetop::Runtime::SyntaxNode
+  module StructNode 
     def eval(scope)
       scope.structs[text_value]
     end
@@ -134,7 +134,7 @@ module ETL
   #   - text
   #   - struct
   #   - verb
-  class BuiltinTypeNode < Treetop::Runtime::SyntaxNode
+  module BuiltinTypeNode 
     def eval(scope)
       return text_value.to_sym
     end
@@ -146,7 +146,7 @@ module ETL
   #       create the struct game.
   #       create the game zuuup and
   #         set its description to "some random weird game".
-  class StructTypeNode < Treetop::Runtime::SyntaxNode
+  module StructTypeNode 
     def eval(scope)
       return struct.eval(scope)
     end
@@ -156,7 +156,7 @@ module ETL
   #   any sequence of decimal digits [0-9],
   #   optionally followed by a point [.]
   #     and more decimal digits.
-  class NumberNode < Treetop::Runtime::SyntaxNode
+  module NumberNode 
     def eval(scope)
       self.to_i
     end
@@ -169,7 +169,7 @@ module ETL
   #   any string of text
   #     not containing a double quotation mark [fixme]
   #     surrounded by double quotation marks ["].
-  class TextNode < Treetop::Runtime::SyntaxNode
+  module TextNode 
     def eval(scope)
       return ETL.text(str.text_value)
     end
