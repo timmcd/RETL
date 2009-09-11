@@ -1,3 +1,5 @@
+require 'treetop'
+
 module ETL
   grammar Grammar
       rule script
@@ -11,15 +13,15 @@ module ETL
           }
       end
       rule sentence
-          statement optional_statements:(space 'and' space statement)* '.' {
+          space? statement opt:(space 'and' space statement)* '.' {
             def eval(scope)
               statement.eval(scope)
-              optional_statements.elements.map{|st|st.eval(scope)}.last
+              opt.elements.map{|st|st.eval(scope)}.last
             end
           }
       end
       rule statement
-          space? verb:( verb/verbcalled ) arguments:( space a:argument ( ',' &( space argument ) ) )* {
+          verb:( verb/verbcalled ) arguments:( space a:argument (',' &(space? argument) / '') )* {
             def eval(scope)
               verb.eval(scope).call(*arguments.elements.map{|a|a.a.eval(scope)})
             end
