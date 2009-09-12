@@ -4,7 +4,7 @@ require 'etl/pdef'
 module ETL
   grammar Grammar
     rule script
-      sentence+
+      space? body:sentence+ space?
         <ScriptNode>
     end
 

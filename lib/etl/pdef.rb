@@ -30,7 +30,7 @@ module ETL
   module ScriptNode
     def compile
       IL[
-          *elements.map do |e|
+          *body.elements.map do |e|
             e.compile
           end
       ]
