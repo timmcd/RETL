@@ -4,11 +4,12 @@ require 'etl/pdef'
 module ETL
   grammar Grammar
     rule script
-      (sentence / blockcomment / comment)+
+      sentence+
         <ScriptNode>
     end
 
     rule sentence
+      comment /
       space? statement opt:(space 'and' space statement)* '.'
         <SentenceNode>
     end
@@ -86,7 +87,7 @@ module ETL
     end
 
     rule comment
-      "--" comment:[^\n]*
+      space? "--" comment:[^\n]*
         <CommentNode>
     end
   end
