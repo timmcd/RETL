@@ -13,3 +13,24 @@ First, you should compile the parser. You don't have to, but it is recommended f
 The interpreter is still being worked on, but you can try out the etl-parsetree tool.
 
 Run the Ruby script, type a line of code and press ENTER. You will get a pretty long syntax tree. If it didn't parse, it will just print "nil".
+
+Recent Activity
+----------------------------------
+
+Comments:
+    -- single-line comment
+    --[
+        block comment
+                      ]--
+
+Works in Progress
+----------------------------------
+
+Verb definitions:
+    verb print takes <strings args>:
+      --[ native code ]--
+    ;;
+
+Simple Compiler
+
+Simple Interpreter
