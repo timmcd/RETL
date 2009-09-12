@@ -1,7 +1,7 @@
 
 desc "build the file of treetop."
 task :treetop do
-  sh "tt lib/etl/grammar.tt" unless File.exists?("etl/grammar.rb")
+  sh "tt lib/etl/grammar.tt" if !File.exists?("lib/etl/grammar.rb") || File.stat("lib/etl/grammar.tt").mtime > File.stat("lib/etl/grammar.rb").mtime
 end
 
 desc "create the documentation."

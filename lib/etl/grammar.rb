@@ -1134,16 +1134,22 @@ module ETL
     end
 
     module Text0
-      def text_value; '"'; end
     end
 
     module Text1
     end
 
     module Text2
+    end
+
+    module Text3
+    end
+
+    module Text4
       def str
         elements[1]
       end
+
     end
 
     def _nt_text
@@ -1167,56 +1173,148 @@ module ETL
         s2, i2 = [], index
         loop do
           i3 = index
-          if has_terminal?('\"', false, index)
-            r4 = instantiate_node(SyntaxNode,input, index...(index + 2))
-            r4.extend(Text0)
-            @index += 2
+          i4, s4 = index, []
+          if has_terminal?('\\', false, index)
+            r5 = instantiate_node(SyntaxNode,input, index...(index + 1))
+            @index += 1
           else
-            terminal_parse_failure('\"')
+            terminal_parse_failure('\\')
+            r5 = nil
+          end
+          s4 << r5
+          if r5
+            if has_terminal?('\G["n]', true, index)
+              next_character = index + input[index..-1].match(/\A(.)/um).end(1)
+              r6 = true
+              @index = next_character
+            else
+              r6 = nil
+            end
+            s4 << r6
+          end
+          if s4.last
+            r4 = instantiate_node(SyntaxNode,input, i4...index, s4)
+            r4.extend(Text0)
+          else
+            @index = i4
             r4 = nil
           end
           if r4
             r3 = r4
           else
-            i5, s5 = index, []
-            i6 = index
-            if has_terminal?('"', false, index)
-              r7 = instantiate_node(SyntaxNode,input, index...(index + 1))
+            i7, s7 = index, []
+            if has_terminal?('\\', false, index)
+              r8 = instantiate_node(SyntaxNode,input, index...(index + 1))
               @index += 1
             else
-              terminal_parse_failure('"')
+              terminal_parse_failure('\\')
+              r8 = nil
+            end
+            s7 << r8
+            if r8
+              s9, i9 = [], index
+              loop do
+                if has_terminal?('\G[0-7]', true, index)
+                  next_character = index + input[index..-1].match(/\A(.)/um).end(1)
+                  r10 = true
+                  @index = next_character
+                else
+                  r10 = nil
+                end
+                if r10
+                  s9 << r10
+                else
+                  break
+                end
+              end
+              if s9.empty?
+                @index = i9
+                r9 = nil
+              else
+                r9 = instantiate_node(SyntaxNode,input, i9...index, s9)
+              end
+              s7 << r9
+            end
+            if s7.last
+              r7 = instantiate_node(SyntaxNode,input, i7...index, s7)
+              r7.extend(Text1)
+            else
+              @index = i7
               r7 = nil
             end
             if r7
-              r6 = nil
+              r3 = r7
             else
-              @index = i6
-              r6 = instantiate_node(SyntaxNode,input, index...index)
-            end
-            s5 << r6
-            if r6
-              if index < input_length
-                next_character = index + input[index..-1].match(/\A(.)/um).end(1)
-                r8 = instantiate_node(SyntaxNode,input, index...next_character)
-                @index = next_character
+              i11, s11 = index, []
+              if has_terminal?('\\x', false, index)
+                r12 = instantiate_node(SyntaxNode,input, index...(index + 2))
+                @index += 2
               else
-                terminal_parse_failure("any character")
-                r8 = nil
+                terminal_parse_failure('\\x')
+                r12 = nil
               end
-              s5 << r8
-            end
-            if s5.last
-              r5 = instantiate_node(SyntaxNode,input, i5...index, s5)
-              r5.extend(Text1)
-            else
-              @index = i5
-              r5 = nil
-            end
-            if r5
-              r3 = r5
-            else
-              @index = i3
-              r3 = nil
+              s11 << r12
+              if r12
+                if has_terminal?('\G[0-9a-fA-F]', true, index)
+                  next_character = index + input[index..-1].match(/\A(.)/um).end(1)
+                  r13 = true
+                  @index = next_character
+                else
+                  r13 = nil
+                end
+                s11 << r13
+              end
+              if s11.last
+                r11 = instantiate_node(SyntaxNode,input, i11...index, s11)
+                r11.extend(Text2)
+              else
+                @index = i11
+                r11 = nil
+              end
+              if r11
+                r3 = r11
+              else
+                i14, s14 = index, []
+                i15 = index
+                if has_terminal?('"', false, index)
+                  r16 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                  @index += 1
+                else
+                  terminal_parse_failure('"')
+                  r16 = nil
+                end
+                if r16
+                  r15 = nil
+                else
+                  @index = i15
+                  r15 = instantiate_node(SyntaxNode,input, index...index)
+                end
+                s14 << r15
+                if r15
+                  if index < input_length
+                    next_character = index + input[index..-1].match(/\A(.)/um).end(1)
+                    r17 = instantiate_node(SyntaxNode,input, index...next_character)
+                    @index = next_character
+                  else
+                    terminal_parse_failure("any character")
+                    r17 = nil
+                  end
+                  s14 << r17
+                end
+                if s14.last
+                  r14 = instantiate_node(SyntaxNode,input, i14...index, s14)
+                  r14.extend(Text3)
+                else
+                  @index = i14
+                  r14 = nil
+                end
+                if r14
+                  r3 = r14
+                else
+                  @index = i3
+                  r3 = nil
+                end
+              end
             end
           end
           if r3
@@ -1227,10 +1325,20 @@ module ETL
         end
         r2 = instantiate_node(SyntaxNode,input, i2...index, s2)
         s0 << r2
+        if r2
+          if has_terminal?('"', false, index)
+            r18 = instantiate_node(SyntaxNode,input, index...(index + 1))
+            @index += 1
+          else
+            terminal_parse_failure('"')
+            r18 = nil
+          end
+          s0 << r18
+        end
       end
       if s0.last
         r0 = instantiate_node(TextNode,input, i0...index, s0)
-        r0.extend(Text2)
+        r0.extend(Text4)
       else
         @index = i0
         r0 = nil

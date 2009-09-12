@@ -4,7 +4,7 @@ require 'etl/pdef'
 module ETL
   grammar Grammar
     rule script
-      sentence+
+      (sentence / blockcomment / comment)+
         <ScriptNode>
     end
 
@@ -19,7 +19,7 @@ module ETL
     end
 
     rule space
-      [\s]+
+      [\s]+ (blockcomment space)?
         <SpaceNode>
     end
 
@@ -76,8 +76,18 @@ module ETL
     end
 
     rule text
-      '"' str:('\' ["n] / '\' [0-7]+ / '\x' [0-9a-fA-F] / !'"' .)*
+      '"' str:('\\' ["n] / '\\' [0-7]+ / '\\x' [0-9a-fA-F] / !'"' .)* '"'
         <TextNode>
+    end
+
+    rule blockcomment
+      "--[" comment:(!"]--" .)* "]--"
+        <CommentNode>
+    end
+
+    rule comment
+      "--" comment:[^\n]*
+        <CommentNode>
     end
   end
 end

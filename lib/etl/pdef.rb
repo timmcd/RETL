@@ -183,4 +183,17 @@ module ETL
                      )
     end
   end
+
+  # rule comment|blockcomment
+  #   any string of text,
+  #   comment:      start "--"  end [newline]
+  #   blockcomment: start "--[" end "]--"
+  #
+  #   comment can come at the end of a sentence,
+  #   blockcomment can come anywhere whitespace goes.
+  module CommentNode
+    def eval(scope)
+      # do nothing
+    end
+  end
 end
