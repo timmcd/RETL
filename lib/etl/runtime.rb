@@ -27,9 +27,32 @@ end
 
 class ETL::Scope
   # unfinished
-  def initialize(parent=nil)
-    @parent = parent
+  def initialize(parents=[nil])
+    @parents = parents
     @verbs = ETL::Table::Verb.new
-    @nouns = ETL::Table::Verb.new
+    @nouns = ETL::Table::Noun.new
   end
+
+  def has_verb?(var)
+    n = nil
+    if @verbs.has?(var)
+      return @verbs[var]
+    elsif @parents.find{ |pr| n=pr[var]}
+      return n
+    else
+      return ETL::None
+    end
+  end
+
+  def has_noun?(var)
+    n = nil
+    if @nouns.has?(var)
+      return @nouns[var]
+    elsif @parents.find{ |pr| n=pr[var]}
+      return n
+    else
+      return ETL::None
+    end
+  end
+
 end
