@@ -10,12 +10,16 @@ module ETL
 
     rule sentence
       comment /
-      space? statement opt:(space 'and' space statement)* '.'
+      space? chunk opt:(space 'and' space chunk)* '.'
         <SentenceNode>
     end
 
+    rule chunk
+      creation / assignment / statement
+    end
+
     rule statement
-      verb:( verb/verbcalled ) arguments:( space a:argument (',' &(space? argument) / !(space? argument) '') )*
+      verb:( verb/verbcalled ) arguments:( space a:argument (',' &(space argument) / !(space argument) '') )*
         <StatementNode>
     end
 
@@ -25,7 +29,7 @@ module ETL
     end
 
     rule verbcalled
-      '[' s:statement ']'
+      '[' s:chunk ']'
         <VerbCalledNode>
     end
 
@@ -35,17 +39,37 @@ module ETL
     end
 
     rule argument
-      (verbcalled / noun / math / number / text)
+      (noun / math / number / text / verbcalled)
         <ArgumentNode>
     end
 
+    rule assignment
+      verb:( verb/verbcalled ) space noun space 'to' space argument
+        <AssignmentNode>
+    end
+
     rule noun
-      ('the' space)? r:(nt:type space ('of' space)?)? name:(it/[A-Za-z-])+ q:("'" "s"? space property:noun)?
+      it /
+      ('the' space)? name:[A-Za-z-]+ q:("'" "s"? space property:noun)?
         <NounNode>
     end
 
+    rule typednoun
+      ('the' space)? type space ('of' space)? name:[A-Za-z-]+ q:("'" "s"? space property:noun)?
+        <TypedNounNode>
+    end
+
+    rule creation
+      "create" space typednoun as:(space "as" space argument)?
+        <CreationNode>
+    end
+
     rule it
-      'it'
+      'them'
+        <ItNode> /
+      'their' q:(space property:noun)
+        <ItNode> /
+      'it' q:("s" space property:noun)?
         <ItNode>
     end
 
@@ -77,7 +101,7 @@ module ETL
     end
 
     rule text
-      '"' str:('\\' ["n] / '\\' [0-7]+ / '\\x' [0-9a-fA-F] / !'"' .)* '"'
+      '"' str:('\\' ["ne] / '\\' [0-7]+ / '\\x' [0-9a-fA-F] / !'"' .)* '"'
         <TextNode>
     end
 
@@ -87,7 +111,7 @@ module ETL
     end
 
     rule comment
-      space? "--" comment:[^\n]*
+      space? "--" comment:(!"\n" .)* "\n"?
         <CommentNode>
     end
   end
