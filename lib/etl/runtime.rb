@@ -27,32 +27,66 @@ end
 
 class ETL::Scope
   # unfinished
-  def initialize(parents=[nil])
+  def initialize(parents=[])
     @parents = parents
     @verbs = ETL::Table::Verb.new
     @nouns = ETL::Table::Noun.new
   end
 
+  # check if we have a verb.
   def has_verb?(var)
-    n = nil
     if @verbs.has?(var)
-      return @verbs[var]
-    elsif @parents.find{ |pr| n=pr[var]}
-      return n
+      return true
+    elsif pa = @parents.find{ |pr| pr.has_verb?(var)}
+      return pa
     else
-      return ETL::None
+      return false
     end
   end
 
   def has_noun?(var)
-    n = nil
     if @nouns.has?(var)
-      return @nouns[var]
-    elsif @parents.find{ |pr| n=pr[var]}
-      return n
+      return true
+    elsif pa = @parents.find{ |pr| pr.has_noun?(var)}
+      return pa
     else
-      return ETL::None
+      return false
     end
   end
 
+  def verbs
+    vbs = Object.new
+    vbs.instance_variable_set(:@scope, self)
+    class << vbs
+      def [](v)
+        case x = @scope.has_verb?(v)
+        when true
+          return @scope.instance_variable_get(:@verbs)[v]
+        when false
+          return ETL::None
+        else
+          return x.verbs[v]
+        end
+      end
+    end
+    return vbs
+  end
+
+  def nouns
+    nos = Object.new
+    nos.instance_variable_set(:@scope, self)
+    class << nos
+      def [](n)
+        case x = @scope.has_noun?(n)
+        when true
+          return @scope.instance_variable_get(:@nouns)[n]
+        when false
+          return ETL::None
+        else
+          return x.nouns[n]
+        end
+      end
+    end
+    return nos
+  end
 end

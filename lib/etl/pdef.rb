@@ -1,6 +1,12 @@
 require 'treetop'
 
 module ETL
+  class Special < Hash
+    def inspect
+      "( #{self.map{|k,v| "#{k}: #{v.inspect}"}.join(", ")} )"
+    end
+  end
+
   # rule script
   #   one or more sentences.
   module ScriptNode 
@@ -9,6 +15,11 @@ module ETL
       elements.map do |s|
         s.eval(scope)
       end.last
+    end
+    def compile
+      elements.map do |e|
+        e.compile
+      end
     end
   end
 
@@ -21,6 +32,9 @@ module ETL
       statement.eval(scope)
       opt.elements.map{|st|st.eval(scope)}.last
     end
+    def compile
+      [statement.compile, *opt.elements.map{|st|st.compile}]
+    end
   end
 
   # rule statement
@@ -30,6 +44,9 @@ module ETL
     def eval(scope)
       verb.eval(scope).call(*arguments.elements.map{|a|a.a.eval(scope)})
     end
+    def compile
+      [verb.compile, *arguments.elements.map{|a|a.a.compile}]
+    end
   end
 
   # rule space
@@ -37,6 +54,9 @@ module ETL
   module SpaceNode 
     def eval(scope)
       # do nothing
+    end
+    def compile
+      nil
     end
   end
 
@@ -46,6 +66,9 @@ module ETL
   module VerbCalledNode 
     def eval(scope)
       s.eval(scope)
+    end
+    def compile
+      ETL::Special[:iexpr => s.compile]
     end
   end
 
@@ -57,6 +80,9 @@ module ETL
     def eval(scope)
       scope.verbs[text_value]
     end
+    def compile
+      ETL::Special[:verb => text_value]
+    end
   end
 
   # rule argument
@@ -67,9 +93,12 @@ module ETL
   #   - type
   #   - number
   #   - text
-  module ArgumentNode 
+  module ArgumentNode
     def eval(scope)
-      elements[0].elements[0].eval(scope)
+      elements[0].eval(scope)
+    end
+    def compile
+      elements[0].compile
     end
   end
 
@@ -85,6 +114,13 @@ module ETL
       n = scope.nouns[name.text_value,type.eval(scope)]
       property ? property.eval(n.scope) : n
     end
+    def compile
+      if property
+        ETL::Special[:noun => name.text_value, :type => type.compile]
+      else
+        ETL::Special[:noun => name.text_value, :type => type.compile, :prop => property.compile]
+      end
+    end
   end
 
   # rule it
@@ -92,6 +128,9 @@ module ETL
   module ItNode 
     def eval(scope)
       scope.it
+    end
+    def compile
+      ETL::Special[:noun => :it]
     end
   end
 
@@ -101,6 +140,9 @@ module ETL
   module MathNode 
     def eval(scope)
       ETL.number(Kernel.eval("#{base.eval(scope)} #{operations.elements.map{|o|"#{o.op.eval(scope)} #{o.n.eval(scope)}"}.join(' ')}"))
+    end
+    def compile
+      ETL::Special[:math => "#{base.eval(scope)} #{operations.elements.map{|o|"#{o.op.eval(scope)} #{o.n.eval(scope)}"}.join(' ')}"]
     end
   end
 
@@ -116,6 +158,9 @@ module ETL
         return text_value
       end
     end
+    def compile
+      return text_value
+    end
   end
 
   # rule struct
@@ -124,6 +169,9 @@ module ETL
   module StructNode 
     def eval(scope)
       scope.structs[text_value]
+    end
+    def compile
+      ETL::Special[:struct => text_value]
     end
   end
 
@@ -138,6 +186,9 @@ module ETL
     def eval(scope)
       return text_value.to_sym
     end
+    def compile
+      ETL::Special[:bit => text_value]
+    end
   end
 
   # rule type / 2
@@ -149,6 +200,9 @@ module ETL
   module StructTypeNode 
     def eval(scope)
       return struct.eval(scope)
+    end
+    def compile
+      ETL::Special[:srt => struct.compile]
     end
   end
 
@@ -163,6 +217,9 @@ module ETL
     def to_i
       return ETL.number(base.text_value.to_i, point.n.text_value.to_i)
     end
+    def compile
+      self.to_i
+    end
   end
 
   # rule text
@@ -173,14 +230,19 @@ module ETL
   #     surrounded by double quotation marks ["].
   module TextNode 
     def eval(scope)
-      return ETL.text(str.text_value.
-                      gsub('\"', '"').
-                      gsub('\n', "\n").
-                      gsub('\e', "\e").
-                      gsub('\r', "\r").
-                      gsub(/\\0([0-7]+)/){ $1.to_i(8).chr }.
-                      gsub(/\\x([0-9a-fA-F]+)/) { $1.to_i(16).chr }
-                     )
+      self.to_s
+    end
+    def to_s
+      str.text_value.
+        gsub('\"', '"').
+        gsub('\n', "\n").
+        gsub('\e', "\e").
+        gsub('\r', "\r").
+        gsub(/\\0([0-7]+)/){ $1.to_i(8).chr }.
+        gsub(/\\x([0-9a-fA-F]+)/) { $1.to_i(16).chr }
+    end
+    def compile
+      self.to_s
     end
   end
 
@@ -194,6 +256,9 @@ module ETL
   module CommentNode
     def eval(scope)
       # do nothing
+    end
+    def compile
+      ETL::Special[:comment => self.comment]
     end
   end
 end
