@@ -1,11 +1,29 @@
 require 'treetop'
+require 'etl/runtime'
 
 module ETL
   class Special < Hash
-    def inspect
-      "( #{self.map{|k,v| "#{k}: #{v.inspect}"}.join(", ")} )"
+    def etl_show
+      if empty?
+        "\e[1m\e[35m(\e[31m...\e[35m)\e[0m"
+      else
+        "\e[1m\e[35m(\e[0m\n#{self.map{|k,v| "  \e[32m\e[1m#{k}:\e[0m\n#{(v.respond_to?(:etl_show) ? v.etl_show : "\e[33m#{v.inspect}\e[0m").gsub(/^/, ' '*(k.to_s.size+6))}"}.join("\n")}\n\e[1m\e[35m)\e[0m"
+      end
     end
   end
+
+  class InstructionList < Array
+    def etl_show
+      if empty?
+        "\e[1m\e[36m<\e[31m...\e[36m>\e[0m"
+      else
+        "\e[1m\e[36m<\e[0m\n#{self.map{|i|i.respond_to?(:etl_show) ? i.etl_show.gsub(/^/, '  ') : "  * \e[33m#{i.inspect}\e[0m"}.join("\n\n")}\n\e[1m\e[36m>\e[0m"
+      end
+    end
+  end
+
+  SP = Special
+  IL = InstructionList
 
   # rule script
   #   one or more sentences.
@@ -17,9 +35,11 @@ module ETL
       end.last
     end
     def compile
-      elements.map do |e|
-        e.compile
-      end
+      IL[
+          *elements.map do |e|
+            e.compile
+          end
+      ]
     end
   end
 
@@ -33,7 +53,7 @@ module ETL
       opt.elements.map{|st|st.eval(scope)}.last
     end
     def compile
-      [statement.compile, *opt.elements.map{|st|st.compile}]
+      IL[statement.compile, *opt.elements.map{|st|st.compile}]
     end
   end
 
@@ -45,7 +65,7 @@ module ETL
       verb.eval(scope).call(*arguments.elements.map{|a|a.a.eval(scope)})
     end
     def compile
-      [verb.compile, *arguments.elements.map{|a|a.a.compile}]
+      IL[verb.compile, *arguments.elements.map{|a|a.a.compile}]
     end
   end
 
@@ -68,7 +88,7 @@ module ETL
       s.eval(scope)
     end
     def compile
-      ETL::Special[:iexpr => s.compile]
+      SP[:iexpr => s.compile]
     end
   end
 
@@ -81,7 +101,7 @@ module ETL
       scope.verbs[text_value]
     end
     def compile
-      ETL::Special[:verb => text_value]
+      SP[:verb => text_value]
     end
   end
 
@@ -94,12 +114,6 @@ module ETL
   #   - number
   #   - text
   module ArgumentNode
-    def eval(scope)
-      elements[0].eval(scope)
-    end
-    def compile
-      elements[0].compile
-    end
   end
 
   # rule noun
@@ -115,10 +129,10 @@ module ETL
       property ? property.eval(n.scope) : n
     end
     def compile
-      if property
-        ETL::Special[:noun => name.text_value, :type => type.compile]
+      if q.respond_to?(:property)
+        SP[:noun => name.text_value, :type => (r.nt.compile rescue nil), :prop => property.compile]
       else
-        ETL::Special[:noun => name.text_value, :type => type.compile, :prop => property.compile]
+        SP[:noun => name.text_value, :type => (r.nt.compile rescue nil)]
       end
     end
   end
@@ -130,7 +144,7 @@ module ETL
       scope.it
     end
     def compile
-      ETL::Special[:noun => :it]
+      SP[:noun => :it]
     end
   end
 
@@ -142,7 +156,7 @@ module ETL
       ETL.number(Kernel.eval("#{base.eval(scope)} #{operations.elements.map{|o|"#{o.op.eval(scope)} #{o.n.eval(scope)}"}.join(' ')}"))
     end
     def compile
-      ETL::Special[:math => "#{base.eval(scope)} #{operations.elements.map{|o|"#{o.op.eval(scope)} #{o.n.eval(scope)}"}.join(' ')}"]
+      SP[:math => "#{base.eval(scope)} #{operations.elements.map{|o|"#{o.op.eval(scope)} #{o.n.eval(scope)}"}.join(' ')}"]
     end
   end
 
@@ -171,7 +185,7 @@ module ETL
       scope.structs[text_value]
     end
     def compile
-      ETL::Special[:struct => text_value]
+      SP[:struct => text_value]
     end
   end
 
@@ -187,7 +201,7 @@ module ETL
       return text_value.to_sym
     end
     def compile
-      ETL::Special[:bit => text_value]
+      SP[:bit => text_value]
     end
   end
 
@@ -202,7 +216,7 @@ module ETL
       return struct.eval(scope)
     end
     def compile
-      ETL::Special[:srt => struct.compile]
+      SP[:srt => struct.compile]
     end
   end
 
@@ -215,7 +229,7 @@ module ETL
       self.to_i
     end
     def to_i
-      return ETL.number(base.text_value.to_i, point.n.text_value.to_i)
+      return ETL.number(base.text_value.to_i, point.respond_to?(:n) ? point.n.text_value.to_i : nil)
     end
     def compile
       self.to_i
@@ -258,7 +272,7 @@ module ETL
       # do nothing
     end
     def compile
-      ETL::Special[:comment => self.comment]
+      SP[:comment => self.comment]
     end
   end
 end

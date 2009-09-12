@@ -15,7 +15,7 @@ module ETL
     end
 
     rule statement
-      verb:( verb/verbcalled ) arguments:( space a:argument (',' &(space? argument) / '') )*
+      verb:( verb/verbcalled ) arguments:( space a:argument (',' &(space? argument) / !(space? argument) '') )*
         <StatementNode>
     end
 
@@ -35,12 +35,12 @@ module ETL
     end
 
     rule argument
-      (verbcalled / noun / math / type / number / text)
+      (verbcalled / noun / math / number / text)
         <ArgumentNode>
     end
 
     rule noun
-      ('the' space)? (type space ('of' space)?)? name:(it/[A-Za-z-])+ ("'" "s"? space property:noun)?
+      ('the' space)? r:(nt:type space ('of' space)?)? name:(it/[A-Za-z-])+ q:("'" "s"? space property:noun)?
         <NounNode>
     end
 
