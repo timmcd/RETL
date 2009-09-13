@@ -27,6 +27,8 @@ module ETL
 
   # rule script
   #   one or more sentences.
+  #   whitespace at beginning
+  #     and end of script ignored.
   module ScriptNode
     def compile
       IL[
@@ -38,7 +40,7 @@ module ETL
   end
 
   # rule sentence
-  #   one or more statements,
+  #   one or more chunks,
   #   delimited by "and",
   #   ended with a period.
   module SentenceNode
@@ -69,7 +71,7 @@ module ETL
   end
 
   # rule typednoun
-  #   ... TODO: update docs :D
+  #   [the] type [of] name['<s> property]
   module TypedNounNode
     def compile
       if q.respond_to?(:property)
@@ -109,12 +111,11 @@ module ETL
 
   # rule argument
   #   one of:
-  #   - verbcalled
-  #   - assignment
   #   - noun
   #   - math
   #   - number
   #   - text
+  #   - verbcalled
   module ArgumentNode
   end
 
@@ -127,10 +128,11 @@ module ETL
   # rule noun
   #   any of [A-Za-z-] or "it",
   #   prefixed optionally by 'the',
-  #   or type and optionally 'of',
   #   followed by ' or 's optionally
   #     and another noun, to designate
   #     a property.
+  #
+  #   them (it) / their [property] / its [property] are also acceptable.
   module NounNode
     def compile
       if q.respond_to?(:property)
