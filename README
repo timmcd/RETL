@@ -17,20 +17,43 @@ Run the Ruby script, type a line of code and press ENTER. You will get a pretty 
 Recent Activity
 ----------------------------------
 
-Comments:
-    -- single-line comment
-    --[
-        block comment
-                      ]--
+Simple Compiler:
+
+  Input is transformed into a simple list-tree structure. Run bin/etl-compiletree and see the output. (requires ANSI-capable terminal)
 
 Works in Progress
 ----------------------------------
 
 Verb definitions:
-    verb print takes <strings args>:
-      --[ native code ]--
+    verb print takes < +list[string] args >:
+      call "write", [cat +args].
     ;;
 
-Simple Compiler
+Struct definitions:
+    struct sport contains:
+      textile description,
+      text    object
+    ;;
 
-Simple Interpreter
+Blocks & Closures:
+    create the server Google as [connect-to "www.google.com"].
+    run-at [time "3:00 PM"], { print "Closures FTW". }
+    run-at [time "3:01 PM"]:
+      print "Blocks FTW".
+      ping Google and if {? it}, {print "Google OK"}. -- ping google.com
+    ;;
+
+Compiled format (simple parsing format):
+    live long and prosper. run-at the death-time, { print "Goodbye!". }.
+
+    <<<(verb:"live") (noun:"long")> <(verb:"prosper")>> <<(verb:"run-at") (noun:"the-death-time") (block:<<<(verb:"print") "Goodbye!">>>)>>>
+
+    -- and gzipped with Zlib.
+
+Simple Interpreter:
+    .. (404) specification not found :D
+
+Thanks
+----------------------------------
+
+Project Leads: Timothy McDowell (timmcd), Devyn Cairns (devyn)

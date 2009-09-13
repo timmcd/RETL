@@ -10,7 +10,7 @@ module ETL
 
     rule sentence
       comment /
-      space? chunk opt:(space 'and' space chunk)* '.'
+      space? chunk opt:(space "and" space chunk)* '.'
         <SentenceNode>
     end
 
@@ -19,7 +19,7 @@ module ETL
     end
 
     rule statement
-      verb:( verb/verbcalled ) arguments:( space a:argument (',' &(space argument) / !(space argument) '') )*
+      verb:( verb/verbcalled ) arguments:( space a:argument (',' &(space argument) / !(space argument / "and") "") )*
         <StatementNode>
     end
 
@@ -43,6 +43,10 @@ module ETL
         <ArgumentNode>
     end
 
+    rule blacklist
+      "and" / "to"
+    end
+
     rule assignment
       verb:( verb/verbcalled ) space noun space 'to' space argument
         <AssignmentNode>
@@ -50,7 +54,7 @@ module ETL
 
     rule noun
       it /
-      ('the' space)? name:[A-Za-z-]+ q:("'" "s"? space property:noun)?
+      ('the' space)? name:(!blacklist [A-Za-z-]+) q:("'" "s"? space property:noun)?
         <NounNode>
     end
 
